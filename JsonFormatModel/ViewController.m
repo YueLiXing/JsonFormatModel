@@ -14,6 +14,7 @@
 @property (unsafe_unretained) IBOutlet NSTextView *jsonTextView;
 
 @property (unsafe_unretained) IBOutlet NSTextView *modelTextView;
+@property (weak) IBOutlet NSSegmentedControl *segControl;
 
 @end
 
@@ -26,19 +27,55 @@
     self.jsonTextView.font = [NSFont systemFontOfSize:14];
     self.jsonTextView.delegate = self;
     self.modelTextView.font = [NSFont systemFontOfSize:14];
+    
+    self.segControl.segmentCount = 2;
+    [self.segControl setWidth:100 forSegment:0];
+    [self.segControl setWidth:100 forSegment:1];
+    [self.segControl setLabel:@"Json" forSegment:0];
+    [self.segControl setLabel:@"大写" forSegment:1];
+    self.segControl.selectedSegment = 0;
+    self.segControl.target = self;
+    self.segControl.action = @selector(segControlValueChange);
 }
 - (IBAction)formatButtonClick:(id)sender {
-    if (self.jsonTextView.string.length > 0) {
-        NSData * tempData = [self.jsonTextView.string dataUsingEncoding:NSUTF8StringEncoding];
-        NSError * error = nil;
-        id tempObj = [NSJSONSerialization JSONObjectWithData:tempData options:NSJSONReadingMutableLeaves error:&error];
-        if (error) {
-            NSLog(@"%@", error);
-            self.modelTextView.string = @"Json 格式不正确";
-            self.modelTextView.string = error.localizedDescription;
-            self.modelTextView.textColor = [NSColor redColor];
+    [self refreshView];
+}
+
+- (void)segControlValueChange {
+    [self refreshView];
+}
+
+
+- (void)textDidChange:(NSNotification *)notification {
+    [self refreshView];
+}
+
+- (void)refreshView {
+    NSLog(@"%@", NSPasteboard.generalPasteboard.pasteboardItems);
+    if (self.segControl.selectedSegment == 0) {
+        if (self.jsonTextView.string.length > 0) {
+            NSData * tempData = [self.jsonTextView.string dataUsingEncoding:NSUTF8StringEncoding];
+            NSError * error = nil;
+            id tempObj = [NSJSONSerialization JSONObjectWithData:tempData options:NSJSONReadingMutableLeaves error:&error];
+            if (error) {
+                NSLog(@"%@", error);
+                self.modelTextView.string = @"Json 格式不正确";
+                self.modelTextView.string = error.localizedDescription;
+                self.modelTextView.textColor = [NSColor redColor];
+            } else {
+                [self formatJsonObject:tempObj];
+            }
         } else {
-            [self formatJsonObject:tempObj];
+            self.modelTextView.string = @"";
+        }
+    } else {
+        NSString * upStr = [self.jsonTextView.string uppercaseString];
+        if (upStr) {
+            self.modelTextView.textColor = NSColor.blackColor;
+            self.modelTextView.string = upStr;
+            [NSPasteboard.generalPasteboard clearContents];
+            BOOL ret = [NSPasteboard.generalPasteboard setString:upStr forType:NSPasteboardTypeString];
+            NSLog(@"ret : %d", ret);
         }
     }
 }
@@ -74,7 +111,7 @@
         [tempStringArray addObject:tempString];
     }];
     self.modelTextView.string = [tempStringArray componentsJoinedByString:@"\n\n"];
-    self.modelTextView.textColor = [NSColor blackColor];
+    self.modelTextView.textColor = NSColor.blackColor;
 }
 
 
@@ -122,19 +159,5 @@
         }
     }];
 }
-
-- (void)textDidChange:(NSNotification *)notification {
-    if (self.jsonTextView.string.length == 0) {
-        self.modelTextView.string = @"";
-    } else {
-        NSData * tempData = [self.jsonTextView.string dataUsingEncoding:NSUTF8StringEncoding];
-        NSError * error = nil;
-        id tempObj = [NSJSONSerialization JSONObjectWithData:tempData options:NSJSONReadingMutableLeaves error:&error];
-        if (error == nil) {
-            [self formatJsonObject:tempObj];
-        }
-    }
-}
-
 
 @end
