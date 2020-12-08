@@ -81,9 +81,9 @@
 - (void)formatJsonToPropertyString:(NSDictionary *)jsonDict TargetArray:(NSMutableArray<NSMutableArray *> *)taregetArray CurrentArray:(NSMutableArray *)currentArray {
     NSString * preStrString = @"@property (nonatomic, copy) NSString * ";
     NSString * preNumString = @"@property (nonatomic, assign) NSInteger ";
-    NSString * preModelString = @"@property (nonatomic, retain) <#ModelName#> * ";
-    NSString * preArrayString = @"@property (nonatomic, retain) NSArray<#ModelName#> * ";
-    NSString * preIdString = @"@property (nonatomic, retain) id ";
+    NSString * preModelString = @"@property (nonatomic, strong) <#ModelName#> * ";
+    NSString * preArrayString = @"@property (nonatomic, strong) NSArray<#ModelName#> * ";
+    NSString * preIdString = @"@property (nonatomic, strong) id ";
     [jsonDict enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
         if ([obj isKindOfClass:[NSString class]] || [obj isKindOfClass:[NSNull class]]) {
             NSString * tempString = [NSString stringWithFormat:@"%@%@;// %@", preStrString, key, obj];
